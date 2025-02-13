@@ -15,7 +15,7 @@ namespace MyBackend.Models
     public required string Email { get; set; } // Add required
 
     [Required]
-    [Column("passwordhash")]
+    [Column("passwordHash")]
     public required string PasswordHash { get; set; } // Add required
 
     [Required]
