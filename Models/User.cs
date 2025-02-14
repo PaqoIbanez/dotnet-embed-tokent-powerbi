@@ -22,7 +22,7 @@ namespace MyBackend.Models
     [Column("role")]
     public required string Role { get; set; } // Add required
 
-    [Column("registrationid")]
+    [Column("registrationId")]
     public string? RegistrationId { get; set; }
   }
 }
