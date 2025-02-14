@@ -1,70 +1,63 @@
-using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using MyBackend.Services;
-
-namespace MyBackend.Controllers
+// src/MyBackend/Controllers/AuthController.cs
+[ApiController]
+[Route("[controller]")]
+public class AuthController : ControllerBase
 {
-  [ApiController]
-  [Route("[controller]")]
-  public class AuthController : ControllerBase
+  private readonly IAuthService _authService;
+
+  public AuthController(IAuthService authService)
   {
-    private readonly IAuthService _authService;
+    _authService = authService;
+  }
 
-    public AuthController(IAuthService authService)
+  [HttpPost("login")]
+  public async Task<IActionResult> Login([FromBody] LoginRequest model)
+  {
+    if (!ModelState.IsValid)
     {
-      _authService = authService;
+      return BadRequest(ModelState);
     }
 
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest model)
+    try
     {
-      if (!ModelState.IsValid) // Validación del modelo
+      var token = await _authService.AuthenticateUserAsync(model.Email, model.Password);
+
+      // Configurar la cookie (ajusta las opciones según sea necesario)
+      Response.Cookies.Append("token", token, new CookieOptions
       {
-        return BadRequest(ModelState); // Devuelve errores de validación
-      }
+        HttpOnly = true,
+        Secure = true,
+        SameSite = SameSiteMode.None,
+        Expires = DateTime.UtcNow.AddHours(1),
+        Path = "/"
+      });
 
-      try
-      {
-        var token = await _authService.AuthenticateUserAsync(model.Email, model.Password);
-
-        // Configurar la cookie (ajusta las opciones según sea necesario)
-        Response.Cookies.Append("token", token, new Microsoft.AspNetCore.Http.CookieOptions
-        {
-          HttpOnly = true,
-          Secure = true,
-          SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None,
-          Expires = DateTime.UtcNow.AddHours(1),
-          Path = "/"
-        });
-
-        return Ok(new { message = "Inicio de sesión exitoso" });
-      }
-      catch (Exception ex)
-      {
-        // Log del error detallado (usando un logger adecuado, como ILogger<AuthController>)
-        Console.WriteLine($"Error en Login: {ex}"); // Reemplaza con logging adecuado
-
-        return Unauthorized(new { error = "Credenciales inválidas" }); // Mensaje genérico
-      }
+      return Ok(new { message = "Inicio de sesión exitoso" });
     }
-
-    [HttpPost("logout")]
-    public IActionResult Logout()
+    catch (Exception ex)
     {
-      Response.Cookies.Delete("token");
-      return Ok(new { message = "Sesión cerrada" });
-    }
-
-    [HttpGet("check")]
-    public IActionResult Check()
-    {
-      // Se asume que la autenticación via JWT ya se realizó
-      return Ok(new { isAuthenticated = true, user = User.Identity?.Name ?? "" });
+      Console.WriteLine($"Error en Login: {ex}");
+      return Unauthorized(new { error = "Credenciales inválidas" });
     }
   }
 
-  public class LoginRequest
+  [HttpPost("logout")]
+  public IActionResult Logout()
+  {
+    Response.Cookies.Delete("token");
+    return Ok(new { message = "Sesión cerrada" });
+  }
+
+  // <-- Agregamos [Authorize] para que sólo se pueda acceder si hay un token válido
+  [Authorize]
+  [HttpGet("check")]
+  public IActionResult Check()
+  {
+    // Si se llega aquí, la autenticación ha sido exitosa gracias a la validación JWT
+    return Ok(new { isAuthenticated = true, user = User.Identity?.Name ?? "" });
+  }
+
+    public class LoginRequest
   {
     public required string Email { get; set; } // Add required
     public required string Password { get; set; } // Add required
