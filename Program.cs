@@ -43,10 +43,10 @@ builder.Services.AddRateLimiter(options =>
                         httpContext.Request.HttpContext.Connection.RemoteIpAddress?.ToString()!,
           factory: partition => new FixedWindowRateLimiterOptions
           {
-            PermitLimit = 5, // Máximo 5 solicitudes
+            PermitLimit = 15, // Máximo 15 solicitudes
             Window = TimeSpan.FromMinutes(1),
             QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-            QueueLimit = 2,
+            QueueLimit = 5,
           }
       )
   );
