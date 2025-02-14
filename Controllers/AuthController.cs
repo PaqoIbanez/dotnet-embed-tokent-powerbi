@@ -3,6 +3,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MyBackend.Services;
+using Microsoft.AspNetCore.Authorization; // Add this line
 
 [ApiController]
 [Route("[controller]")]

@@ -9,7 +9,7 @@ namespace MyBackend.Controllers
 {
   [ApiController]
   [Route("[controller]")]
-  [Authorize]
+  [Authorize] // Make sure this is still here and the namespace is imported
   public class EmbedController : ControllerBase
   {
     private readonly IPowerBiService _powerBiService;
