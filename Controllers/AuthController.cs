@@ -1,4 +1,9 @@
 // src/MyBackend/Controllers/AuthController.cs
+using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using MyBackend.Services;
+
 [ApiController]
 [Route("[controller]")]
 public class AuthController : ControllerBase
