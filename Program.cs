@@ -78,6 +78,25 @@ builder.Services.AddAuthentication(options =>
     OnTokenValidated = context =>
     {
       Console.WriteLine("Token JWT validado correctamente.");
+
+      // Get the IAuthService instance
+      var authService = context.HttpContext.RequestServices.GetRequiredService<IAuthService>();
+
+      // Get the JTI claim
+      var jti = context.SecurityToken.Id;
+        if (string.IsNullOrEmpty(jti))
+        {
+            context.Fail("JTI claim is missing.");
+            return Task.CompletedTask;
+        }
+
+      // Check if the token is invalidated
+      if (authService.IsTokenInvalidated(jti))
+      {
+        context.Fail("This token has been invalidated.");
+        return Task.CompletedTask;
+      }
+
       return Task.CompletedTask;
     }
   };

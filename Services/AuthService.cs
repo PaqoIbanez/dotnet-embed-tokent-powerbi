@@ -9,24 +9,28 @@ using MyBackend.Data;
 using MyBackend.Models;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic; // Import for HashSet
 
 namespace MyBackend.Services
 {
-  public interface IAuthService
-  {
-    Task<string> AuthenticateUserAsync(string email, string password);
-  }
-
-  public class AuthService : IAuthService
-  {
-    private readonly ApplicationDbContext _dbContext;
-    private readonly IConfiguration _configuration; // **Field declaration - MUST be present**
-
-    public AuthService(ApplicationDbContext dbContext, IConfiguration configuration) // **Constructor - MUST have IConfiguration parameter**
+    public interface IAuthService
     {
-      _dbContext = dbContext;
-      _configuration = configuration; // **Assignment - MUST assign injected configuration to the field**
+        Task<string> AuthenticateUserAsync(string email, string password);
+        void InvalidateToken(string jti); // Add method to invalidate token
+        bool IsTokenInvalidated(string jti); // Add method to check if token is invalidated
     }
+
+    public class AuthService : IAuthService
+    {
+        private readonly ApplicationDbContext _dbContext;
+        private readonly IConfiguration _configuration;
+        private readonly HashSet<string> _invalidatedTokens = new HashSet<string>(); // In-memory blacklist
+
+        public AuthService(ApplicationDbContext dbContext, IConfiguration configuration)
+        {
+            _dbContext = dbContext;
+            _configuration = configuration;
+        }
 
     public async Task<string> AuthenticateUserAsync(string email, string password)
     {
@@ -52,12 +56,14 @@ namespace MyBackend.Services
       var audience = _configuration["Jwt:Audience"];
       var expiryMinutes = Convert.ToDouble(_configuration["Jwt:ExpiryMinutes"]);
 
+      var jti = Guid.NewGuid().ToString(); // Generate unique JTI
       var claims = new[]
       {
         new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
         new Claim(JwtRegisteredClaimNames.Email, user.Email),
         new Claim("role", user.Role),
-        new Claim("registrationId", user.RegistrationId ?? "")
+        new Claim("registrationId", user.RegistrationId ?? ""),
+        new Claim(JwtRegisteredClaimNames.Jti, jti) // Add JTI claim
     };
 
       var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
@@ -71,5 +77,15 @@ namespace MyBackend.Services
 
       return new JwtSecurityTokenHandler().WriteToken(token);
     }
-  }
+
+        public void InvalidateToken(string jti)
+        {
+            _invalidatedTokens.Add(jti);
+        }
+
+        public bool IsTokenInvalidated(string jti)
+        {
+            return _invalidatedTokens.Contains(jti);
+        }
+    }
 }
