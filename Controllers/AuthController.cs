@@ -38,7 +38,7 @@ public class AuthController : ControllerBase
         Secure = true,
         SameSite = SameSiteMode.None,
         Expires = DateTime.UtcNow.AddHours(1),
-        Domain = ".onrender.com",
+        Domain = "dotnet-embed-tokent-powerbi.onrender.com",
         Path = "/"
       });
 
@@ -57,7 +57,7 @@ public class AuthController : ControllerBase
     Console.WriteLine("AuthController.Logout: Deleting cookie");
     Response.Cookies.Delete("token", new CookieOptions()
     {
-      Domain = ".onrender.com", //replace with your domain
+      Domain = "dotnet-embed-tokent-powerbi.onrender.com", //replace with your domain
       Path = "/" // Applies to all routes
     });
     return Ok(new { message = "Sesión cerrada" });
