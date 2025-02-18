@@ -80,11 +80,13 @@ namespace MyBackend.Services
 
         public void InvalidateToken(string jti)
         {
+          Console.WriteLine($"AuthService.InvalidateToken: Invalidating token with JTI: {jti}"); // ADD THIS LINE
             _invalidatedTokens.Add(jti);
         }
 
         public bool IsTokenInvalidated(string jti)
         {
+          Console.WriteLine($"AuthService.InvalidateToken: Token  IS INVALIDATED with JTI: {jti}"); // ADD THIS LINE
             return _invalidatedTokens.Contains(jti);
         }
     }
